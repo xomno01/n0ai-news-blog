@@ -1,79 +1,66 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import BlogLayout from '../../layouts/BlogLayout.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import { getCollection } from 'astro:content';
-
 const posts = (await getCollection('blog')).filter(p => !p.data.draft).sort((a,b) => b.data.publishDate.getTime() - a.data.publishDate.getTime());
 const featured = posts[0];
 const grid = posts.slice(1, 7);
-const list = posts.slice(7, 12);
+const list = posts.slice(7, 15);
 ---
-
-<BaseLayout
-  title="Blog — n0ai Atelier"
-  description="Atelier n0ai: essay 1300-1600 từ, phân tích sâu, serif editorial, pullquote, TOC. Khác hẳn newsroom."
-  breadcrumbs={[{name:'Home', url:'https://news.n0ai.cloud/'}, {name:'Blog', url:'https://news.n0ai.cloud/blog'}]}
->
-  <Header />
-  <div class="bg-[oklch(0.09_0.015_35)] border-b border-[var(--color-border)]">
-    <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-8">
-      <div class="flex items-baseline gap-4">
-        <h1 class="display text-[42px] lg:text-[56px]">ATELIER</h1>
-        <span class="hidden sm:inline mono text-[11px] tracking-[0.16em] text-[var(--color-text-faint)]">ESSAY • 1300—1600 TỪ • SERIF • PULLQUOTE</span>
-        <span class="ml-auto mono text-[11px] px-2.5 py-1 bg-[var(--color-blog)] text-white">BLOG</span>
-      </div>
-      <p class="mt-3 max-w-[640px] text-[14px] leading-relaxed text-[var(--color-text-muted)]">Không phải tin nhanh. Đây là nơi phân tích sâu, essay dài, kiến trúc mỹ thuật riêng — serif, nhịp chậm, pullquote, TOC. Mỗi bài 1300-1600 từ, deepseek v4 flash viết, editor duyệt.</p>
+<BlogLayout title="Atelier — n0ai Essay 1300-1600 từ" description="Atelier khác hẳn Newsroom: serif Fraunces, ink-blue, pullquote, TOC, essay dài flamboyant.">
+  <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex items-baseline gap-4 border-b border-[oklch(0.22_0.02_35)] pb-4">
+      <h1 class="display text-[46px] lg:text-[64px] leading-[0.85]">ATELIER</h1>
+      <span class="hidden sm:inline mono text-[11px] tracking-[0.16em] text-white/40">ESSAY • 1300—1600 • SERIF • FLAMBOYANT</span>
+      <span class="ml-auto mono text-[11px] px-3 py-1 bg-[oklch(0.58_0.16_270)] text-white">{posts.length} ESSAY</span>
     </div>
+    <p class="mt-3 max-w-[720px] mono text-[12px] leading-relaxed text-white/60">Atelier là magazine, không phải news. Mỗi essay là một tác phẩm mỹ thuật web: serif, nhịp chậm, pullquote lớn, TOC bên trái, rail phải. Khác 100% với Newsroom giấy.</p>
   </div>
 
-  <main class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-8">
+  <main class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 pb-12">
     {posts.length === 0 ? (
-      <div class="py-16 text-center mono text-[13px] text-[var(--color-text-muted)] border border-dashed border-[var(--color-border)]">Chưa có essay — sẽ lên 4 lần/ngày.</div>
+      <div class="py-16 text-center mono text-[13px] text-white/50 border border-dashed border-white/10">Chưa có essay — sẽ lên 4 lần/ngày.</div>
     ) : (
       <>
-        {featured && (
-          <BlogCard title={featured.data.title} href={`/blog/${featured.id}`} image={featured.data.cover.src} category={featured.data.category} excerpt={featured.data.description} author={featured.data.author.name} time={featured.data.publishDate.toLocaleDateString('vi-VN')} readingTime={featured.data.readingTime ?? 7} featured />
-        )}
+        {featured && <div class="mt-2"><BlogCard title={featured.data.title} href={`/blog/${featured.id}`} image={featured.data.cover.src} category={featured.data.category} excerpt={featured.data.description} author={featured.data.author.name} time={featured.data.publishDate.toLocaleDateString('vi-VN')} readingTime={featured.data.readingTime ?? 8} featured /></div>}
         <div class="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {grid.map(p => (
-            <BlogCard title={p.data.title} href={`/blog/${p.id}`} image={p.data.cover.src} category={p.data.category} excerpt={p.data.description} author={p.data.author.name} time={p.data.publishDate.toLocaleDateString('vi-VN')} readingTime={p.data.readingTime ?? 6} />
-          ))}
+          {grid.map(p => <BlogCard title={p.data.title} href={`/blog/${p.id}`} image={p.data.cover.src} category={p.data.category} excerpt={p.data.description} author={p.data.author.name} time={p.data.publishDate.toLocaleDateString('vi-VN')} readingTime={p.data.readingTime ?? 7} />)}
         </div>
 
         <div class="mt-12 grid lg:grid-cols-12 gap-8">
           <div class="lg:col-span-8">
-            <div class="mono text-[11px] tracking-widest text-[var(--color-text-faint)]">ESSAY MỚI NHẤT — DÀI</div>
-            <div class="mt-3 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
-              {list.length === 0 ? <div class="py-6 mono text-[12px] text-[var(--color-text-faint)]">Đang cập nhật essay dài...</div> : list.map(p => (
-                <a href={`/blog/${p.id}`} class="group flex gap-4 py-5 hover:bg-[var(--color-surface)]/40 -mx-4 px-4 transition">
+            <div class="flex items-baseline gap-2 border-b border-white/10 pb-2">
+              <h2 class="mono text-[11px] font-[800] tracking-[0.14em] text-white/40">ESSAY DÀI — 1300+</h2>
+              <span class="mono text-[11px] text-white/20">FLAMBOYANT • KHÁC HẲN NEWS</span>
+            </div>
+            <div class="mt-4 divide-y divide-white/10 border-y border-white/10">
+              {list.length === 0 ? <div class="py-8 mono text-[12px] text-white/30">Đang bơm thêm essay dài...</div> : list.map(p => (
+                <a href={`/blog/${p.id}`} class="group flex gap-4 py-5 hover:bg-white/[0.03] -mx-4 px-4 transition">
                   <div class="flex-1">
-                    <div class="mono text-[11px] text-[var(--color-blog)]">{p.data.category} • {p.data.readingTime ?? 6}′</div>
-                    <h4 class="mt-1 font-[700] tracking-[-0.015em] leading-[1.25] text-[16px] group-hover:text-[var(--color-blog)] transition">{p.data.title}</h4>
-                    <p class="mt-1 text-[13px] leading-relaxed text-[var(--color-text-muted)] line-clamp-2">{p.data.description}</p>
+                    <div class="mono text-[11px] text-[oklch(0.58_0.16_270)]">{p.data.category} • {p.data.readingTime ?? 7}′ • {p.data.publishDate.toLocaleDateString('vi-VN')}</div>
+                    <h4 class="mt-1 display text-[20px] leading-[1.1] group-hover:text-[oklch(0.58_0.16_270)] transition">{p.data.title}</h4>
+                    <p class="mt-1 mono text-[12px] leading-relaxed text-white/60 line-clamp-2">{p.data.description}</p>
                   </div>
-                  <img src={p.data.cover.src} alt={p.data.title} width="140" height="92" class="w-[112px] h-[84px] object-cover border border-[var(--color-border)] shrink-0" loading="lazy" />
+                  <img src={p.data.cover.src} alt={p.data.title} width="160" height="106" loading="lazy" class="w-[128px] h-[96px] object-cover border border-white/10 shrink-0" />
                 </a>
               ))}
             </div>
           </div>
-          <aside class="lg:col-span-4">
-            <div class="bg-[var(--color-surface)] border border-[var(--color-border)] p-5">
-              <div class="blog-kicker text-[var(--color-blog)]">Vì sao khác News?</div>
-              <h3 class="mt-2 font-[700] tracking-[-0.02em]">Atelier ≠ Newsroom</h3>
-              <ul class="mt-3 space-y-2 mono text-[12px] leading-relaxed text-[var(--color-text-muted)]">
-                <li>• Serif Fraunces, pullquote, TOC, nhịp chậm</li>
-                <li>• 1300-1600 từ, 5 H2, phân tích sâu</li>
-                <li>• Màu ink-blue, giấy ấm, không đỏ breaking</li>
-                <li>• Không bento trống — dense editorial</li>
+          <aside class="lg:col-span-4 space-y-4">
+            <div class="bg-[oklch(0.58_0.16_270)] text-white p-6">
+              <div class="mono text-[11px] tracking-[0.16em] opacity-80">MANIFESTO</div>
+              <div class="display text-[22px] leading-[1] mt-2">Blog không phải News</div>
+              <ul class="mt-3 mono text-[11px] leading-relaxed opacity-90 space-y-1">
+                <li>• News: giấy, đỏ, mono, dense, 900 từ</li>
+                <li>• Blog: ink-blue, serif, pullquote, 1400 từ</li>
+                <li>• 2 kiến trúc sư khác nhau</li>
               </ul>
             </div>
-            <div class="mt-6 border border-[var(--color-border)] p-4">
-              <div class="mono text-[11px] tracking-widest">TÁC GIẢ</div>
-              <div class="mt-3 space-y-3">
-                <div class="flex gap-3"><div class="size-8 rounded-full bg-[var(--color-blog)] grid place-items-center text-white mono text-[11px]">A</div><div><div class="mono text-[12px] font-[700]">Minh Anh</div><div class="mono text-[11px] text-[var(--color-text-faint)]">Senior Editor — AI & Tech</div></div></div>
-                <div class="flex gap-3"><div class="size-8 rounded-full bg-black text-white grid place-items-center mono text-[11px]">L</div><div><div class="mono text-[12px] font-[700]">Luu Van</div><div class="mono text-[11px] text-[var(--color-text-faint)]">Atelier Lead</div></div></div>
+            <div class="border border-white/10 p-4">
+              <div class="mono text-[11px] tracking-widest text-white/40">TÁC GIẢ ATELIER</div>
+              <div class="mt-3 space-y-3 mono text-[12px]">
+                <div class="flex gap-3"><div class="size-8 rounded-full bg-white text-black grid place-items-center font-[800]">A</div><div><div class="font-[700] text-white">Minh Anh</div><div class="text-white/40">Essayist — AI & Tech</div></div></div>
+                <div class="flex gap-3"><div class="size-8 rounded-full bg-[oklch(0.58_0.16_270)] grid place-items-center text-white">L</div><div><div class="font-[700] text-white">Luu Van</div><div class="text-white/40">Atelier Lead</div></div></div>
               </div>
             </div>
           </aside>
@@ -81,5 +68,4 @@ const list = posts.slice(7, 12);
       </>
     )}
   </main>
-  <Footer />
-</BaseLayout>
+</BlogLayout>

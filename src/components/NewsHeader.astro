@@ -1,0 +1,48 @@
+---
+---
+<header class="sticky top-0 z-40 bg-[#f8f5f0] border-b-[3px] border-black text-black">
+  <!-- Top bar: edition -->
+  <div class="bg-black text-white">
+    <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-1.5 flex items-center gap-3 mono text-[10px] tracking-[0.12em]">
+      <span class="hidden sm:inline">HANOI, VN — {new Date().toLocaleDateString('vi-VN', { weekday:'long', day:'2-digit', month:'long', year:'numeric'})}</span>
+      <span class="px-1.5 py-0.5 bg-white text-black font-[800]">EDITION 06:00 ICT</span>
+      <span class="hidden lg:inline text-white/60">15 BÀI/NGÀY • DEEPSEEK V4 FLASH • 900-1200 TỪ</span>
+      <span class="ml-auto flex items-center gap-1.5"><span class="size-1.5 bg-red-600 animate-pulse"></span>LIVE</span>
+    </div>
+  </div>
+  <!-- Masthead -->
+  <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between py-3 border-b border-black/10">
+      <div class="hidden md:flex items-center gap-2 mono text-[10px] leading-none">
+        <div class="border border-black px-2 py-1 text-center"><div class="font-[800]">GIÁ</div><div>26.500</div></div>
+        <div class="border border-black px-2 py-1 text-center"><div class="font-[800]">THỜI TIẾT</div><div>32°</div></div>
+      </div>
+      <a href="/news" class="text-center">
+        <div class="font-[900] tracking-[-0.04em] leading-none text-[36px] sm:text-[44px]" style="font-family: 'Instrument Serif', Georgia, serif;">n0ai NEWS</div>
+        <div class="mono text-[10px] tracking-[0.18em]">NEWSROOM • EST. 2024</div>
+      </a>
+      <div class="hidden md:flex items-center gap-2">
+        <a href="/rss.xml" class="mono text-[10px] px-2.5 py-1.5 border border-black hover:bg-black hover:text-white transition">RSS</a>
+        <a href="/blog" class="mono text-[10px] px-2.5 py-1.5 bg-black text-white">ATELIER →</a>
+      </div>
+      <button id="nm" class="md:hidden size-8 grid place-items-center border border-black">≡</button>
+    </div>
+    <!-- Nav: newspaper sections -->
+    <nav class="hidden md:flex items-center justify-center gap-6 py-2 mono text-[11px] font-[700] tracking-[0.08em] border-b border-black">
+      <a href="/news" class="underline decoration-2 underline-offset-4">TRANG NHẤT</a>
+      <a href="/news#latest" class="hover:underline">MỚI NHẤT</a>
+      <a href="/topics/kinh-te" class="hover:underline">KINH TẾ</a>
+      <a href="/topics/cong-nghe" class="hover:underline">CÔNG NGHỆ</a>
+      <a href="/topics/doi-song" class="hover:underline">ĐỜI SỐNG</a>
+      <a href="/blog" class="ml-4 px-2 py-1 bg-black text-white">BLOG ATELIER</a>
+    </nav>
+    <div id="nmm" class="hidden md:hidden py-2 grid gap-1 mono text-[12px]">
+      <a href="/news" class="px-3 py-2 border border-black bg-black text-white">TRANG NHẤT</a>
+      <a href="/blog" class="px-3 py-2 border border-black">ATELIER</a>
+    </div>
+  </div>
+</header>
+<script>document.getElementById('nm')?.addEventListener('click',()=>document.getElementById('nmm')?.classList.toggle('hidden'))</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;700&display=swap');
+</style>
