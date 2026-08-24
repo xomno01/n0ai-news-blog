@@ -1,7 +1,7 @@
 ﻿name: n0ai daily ingest
 on:
   schedule:
-    - cron: '0 23,11 * * *' # 06:00 & 18:00 ICT = 23:00 & 11:00 UTC
+    - cron: '0 23,11 * * *' # 06:00 & 18:00 ICT
   workflow_dispatch:
     inputs:
       limit:
@@ -26,9 +26,9 @@ jobs:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
           AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
           AI_MODEL: ${{ secrets.AI_MODEL }}
-          INGEST_LIMIT: ${{ github.event.inputs.limit || '6' }}
+          INGEST_LIMIT: ${{ inputs.limit || '6' }}
         run: node scripts/ingest.mjs
-      - name: Build check
+      - name: Build
         run: npm run build
       - name: Commit & Push
         run: |
@@ -38,7 +38,8 @@ jobs:
           git diff --cached --quiet || git commit -m "chore: auto ingest $(date -u +%Y-%m-%d)"
           git push
       - name: Deploy to Cloudflare Pages
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler pages deploy dist/client --project-name=n0ai-news-blog --commit-dirty=true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/client --project-name=n0ai-news-blog --commit-dirty=true
