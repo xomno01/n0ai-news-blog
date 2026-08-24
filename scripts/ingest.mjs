@@ -111,7 +111,7 @@ HÃ£y viáº¿t láº¡i thÃ nh bÃ i hoÃ n chá»‰nh theo yÃªu cáº�
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
     const res = await fetch(`${baseURL}/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
