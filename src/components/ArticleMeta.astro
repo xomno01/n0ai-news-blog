@@ -1,0 +1,25 @@
+---
+interface Props {
+  publishDate: Date;
+  updateDate?: Date;
+  author: { name: string; role?: string; avatar?: string };
+  readingTime?: number;
+  category: string;
+}
+const { publishDate, updateDate, author, readingTime, category } = Astro.props;
+const fmt = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' });
+---
+
+<div class="flex flex-wrap items-center gap-3 text-[13px]">
+  <a href={`/topics/${category.toLowerCase()}`} class="inline-flex items-center px-2.5 py-1 rounded-full bg-white text-black font-[600] tracking-[-0.01em] hover:bg-zinc-100 transition">{category}</a>
+  <span class="text-[var(--color-text-faint)]">•</span>
+  <time datetime={publishDate.toISOString()} class="text-[var(--color-text-muted)]">{fmt.format(publishDate)}</time>
+  {updateDate && <span class="text-[var(--color-text-faint)]">(cập nhật {fmt.format(updateDate)})</span>}
+  {readingTime && <><span class="text-[var(--color-text-faint)]">•</span><span class="text-[var(--color-text-muted)]">{readingTime} phút đọc</span></>}
+  <span class="text-[var(--color-text-faint)]">•</span>
+  <span class="inline-flex items-center gap-2">
+    {author.avatar ? <img src={author.avatar} alt={author.name} width="20" height="20" class="size-5 rounded-full object-cover" /> : <span class="size-5 rounded-full bg-[var(--color-primary)] grid place-items-center text-white text-[10px] font-[700]">{author.name.slice(0,1)}</span>}
+    <span class="font-[500]">{author.name}</span>
+    {author.role && <span class="text-[var(--color-text-faint)]">— {author.role}</span>}
+  </span>
+</div>

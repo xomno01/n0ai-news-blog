@@ -1,0 +1,111 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import ArticleMeta from '../../components/ArticleMeta.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('news');
+  return posts.filter(p => !p.data.draft).map(post => ({
+    params: { slug: post.id },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const site = 'https://news.n0ai.cloud';
+const url = new URL(`/news/${post.id}`, site).toString();
+
+const newsLd: any = {
+  "@type": "NewsArticle",
+  "@id": `${url}#article`,
+  "headline": post.data.title,
+  "description": post.data.description,
+  "image": { "@type": "ImageObject", "url": post.data.cover.src, "caption": post.data.cover.alt },
+  "datePublished": post.data.publishDate.toISOString(),
+  "dateModified": (post.data.updateDate ?? post.data.publishDate).toISOString(),
+  "author": { "@type": "Person", "name": post.data.author.name },
+  "publisher": { "@id": `${site}/#org` },
+  "mainEntityOfPage": url,
+  "articleSection": post.data.category,
+  "inLanguage": "vi-VN",
+  "isAccessibleForFree": true,
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["#tldr"] },
+  ...(post.data.breaking ? { "keywords": "breaking" } : {})
+};
+
+const faqLd = post.data.faq?.length ? {
+  "@type": "FAQPage",
+  "mainEntity": post.data.faq.map(f => ({ "@type": "Question", "name": f.question, "acceptedAnswer": { "@type": "Answer", "text": f.answer }}))
+} : null;
+
+const breadcrumbLd = {
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": site },
+    { "@type": "ListItem", "position": 2, "name": "News", "item": `${site}/news` },
+    { "@type": "ListItem", "position": 3, "name": post.data.title, "item": url }
+  ]
+};
+
+const jsonLd = [newsLd, breadcrumbLd, ...(faqLd ? [faqLd] : [])];
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  canonical={url}
+  image={post.data.cover.src}
+  imageAlt={post.data.cover.alt}
+  type="article"
+  publishDate={post.data.publishDate}
+  updateDate={post.data.updateDate}
+  author={post.data.author.name}
+  jsonLd={jsonLd}
+  breadcrumbs={[{name:'Home', url:site}, {name:'News', url:`${site}/news`}, {name:post.data.title, url}]}
+>
+  <Header />
+  <main id="main" class="mx-auto max-w-[760px] px-4 sm:px-6 lg:px-8 py-8">
+    {post.data.breaking && <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500 text-white text-[12px] font-[800] tracking-widest mb-4">● BREAKING</div>}
+    <h1 class="text-[28px] sm:text-[36px] font-[800] tracking-[-0.03em] leading-[1.05]">{post.data.title}</h1>
+    <p class="mt-3 text-[16px] leading-relaxed text-[var(--color-text-muted)]">{post.data.description}</p>
+    <div class="mt-4"><ArticleMeta publishDate={post.data.publishDate} updateDate={post.data.updateDate} author={post.data.author} readingTime={post.data.readingTime} category={post.data.category} /></div>
+
+    <figure class="mt-6 overflow-hidden rounded-[20px] border border-[var(--color-border)]">
+      <img src={post.data.cover.src} alt={post.data.cover.alt} width={post.data.cover.width ?? 1200} height={post.data.cover.height ?? 630} loading="eager" fetchpriority="high" decoding="async" class="w-full h-auto" />
+      <figcaption class="px-4 py-2 text-[12px] text-[var(--color-text-faint)] bg-[var(--color-surface)] border-t border-[var(--color-border)]">{post.data.cover.alt} {post.data.location ? `• ${post.data.location}` : ''}</figcaption>
+    </figure>
+
+    {post.data.excerpt && (
+      <div id="tldr" class="mt-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-5">
+        <div class="text-[11px] font-[800] tracking-widest text-amber-600">TÓM TẮT NHANH</div>
+        <p class="mt-2 text-[14px] leading-relaxed">{post.data.excerpt}</p>
+      </div>
+    )}
+
+    <article class="prose prose-invert mt-8">
+      <Content />
+    </article>
+
+    {post.data.sources && (
+      <section class="mt-10 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5">
+        <h2 class="text-[11px] font-[800] tracking-widest text-[var(--color-text-faint)]">NGUỒN</h2>
+        <ul class="mt-3 space-y-1.5 text-[13px]">
+          {post.data.sources.map(s => <li><a href={s.url} target="_blank" rel="noopener" class="hover:underline">{s.title}</a> — <span class="text-[var(--color-text-faint)]">{s.publisher}</span></li>)}
+        </ul>
+      </section>
+    )}
+
+    {post.data.faq && (
+      <section class="mt-8">
+        <h2 class="font-[700]">Hỏi nhanh</h2>
+        <div class="mt-3 space-y-3">
+          {post.data.faq.map(f => <details class="rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-4"><summary class="font-[600] cursor-pointer">{f.question}</summary><p class="mt-2 text-[13px] text-[var(--color-text-muted)]">{f.answer}</p></details>)}
+        </div>
+      </section>
+    )}
+  </main>
+  <Footer />
+</BaseLayout>

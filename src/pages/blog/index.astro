@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import BentoCard from '../../components/BentoCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).filter(p => !p.data.draft).sort((a,b) => b.data.publishDate.getTime() - a.data.publishDate.getTime());
+const categories = [...new Set(posts.map(p => p.data.category))];
+---
+
+<BaseLayout
+  title="Blog — n0ai Deep Dive"
+  description="Blog n0ai: phân tích sâu về AI, công nghệ, kinh tế, đời sống. Mỗi bài dài 800-1200 từ, có FAQ, nguồn và JSON-LD chuẩn GEO/AEO."
+  breadcrumbs={[{name:'Home', url:'https://news.n0ai.cloud/'}, {name:'Blog', url:'https://news.n0ai.cloud/blog'}]}
+>
+  <Header />
+  <main class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="text-[32px] font-[800] tracking-[-0.03em] leading-none">Blog</h1>
+        <p class="mt-2 text-[14px] text-[var(--color-text-muted)] max-w-[560px]">Bài phân tích dài, E-E-A-T, mỗi bài có TL;DR, FAQ và nguồn kiểm chứng. Tự động cập nhật hằng ngày.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        {categories.map(c => <a href={`/topics/${c.toLowerCase()}`} class="px-3 py-1.5 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[12px] font-[600] hover:bg-white hover:text-black transition">{c}</a>)}
+      </div>
+    </div>
+
+    <div class="mt-8 bento">
+      {posts.length === 0 && (
+        <div class="col-span-12 rounded-2xl border border-dashed border-[var(--color-border)] p-12 text-center text-[var(--color-text-muted)]">
+          Chưa có bài — pipeline sẽ populate tự động.
+        </div>
+      )}
+      {posts.map((post, i) => (
+        <BentoCard
+          title={post.data.title}
+          description={post.data.description}
+          href={`/blog/${post.id}`}
+          image={post.data.cover.src}
+          imageAlt={post.data.cover.alt}
+          kicker={post.data.category}
+          meta={`${post.data.readingTime ?? 5} phút • ${post.data.publishDate.toLocaleDateString('vi-VN')}`}
+          size={i===0 ? 'large' : 'medium'}
+          featured={i===0}
+        />
+      ))}
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

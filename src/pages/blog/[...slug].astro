@@ -1,0 +1,155 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import ArticleMeta from '../../components/ArticleMeta.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.filter(p => !p.data.draft).map(post => ({
+    params: { slug: post.id },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const site = 'https://news.n0ai.cloud';
+const url = new URL(`/blog/${post.id}`, site).toString();
+
+// SDO + GEO + AEO: strict JSON-LD
+const articleLd: any = {
+  "@type": "BlogPosting",
+  "@id": `${url}#article`,
+  "headline": post.data.title,
+  "description": post.data.description,
+  "image": { "@type": "ImageObject", "url": post.data.cover.src, "caption": post.data.cover.alt, "width": post.data.cover.width ?? 1200, "height": post.data.cover.height ?? 630 },
+  "datePublished": post.data.publishDate.toISOString(),
+  "dateModified": (post.data.updateDate ?? post.data.publishDate).toISOString(),
+  "author": { "@type": "Person", "name": post.data.author.name, "jobTitle": post.data.author.role ?? "Editor" },
+  "publisher": { "@id": `${site}/#org` },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": url },
+  "articleSection": post.data.category,
+  "keywords": post.data.tags.join(', '),
+  "inLanguage": "vi-VN",
+  "isAccessibleForFree": true,
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["#tldr", ".prose h2"] }
+};
+
+const faqLd = post.data.faq?.length ? {
+  "@type": "FAQPage",
+  "@id": `${url}#faq`,
+  "mainEntity": post.data.faq.map(f => ({
+    "@type": "Question",
+    "name": f.question,
+    "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+  }))
+} : null;
+
+const breadcrumbLd = {
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": site },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": `${site}/blog` },
+    { "@type": "ListItem", "position": 3, "name": post.data.title, "item": url }
+  ]
+};
+
+const jsonLd = [articleLd, breadcrumbLd, ...(faqLd ? [faqLd] : [])];
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  canonical={url}
+  image={post.data.cover.src}
+  imageAlt={post.data.cover.alt}
+  type="article"
+  publishDate={post.data.publishDate}
+  updateDate={post.data.updateDate}
+  author={post.data.author.name}
+  jsonLd={jsonLd}
+  breadcrumbs={[{name:'Home', url:site}, {name:'Blog', url: `${site}/blog`}, {name: post.data.title, url}]}
+>
+  <Header />
+  <main id="main" class="mx-auto max-w-[760px] px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Category + title -->
+    <div class="mb-6">
+      <a href={`/topics/${post.data.category.toLowerCase()}`} class="inline-flex px-2.5 py-1 rounded-full bg-white text-black text-[12px] font-[700] tracking-wide">{post.data.category}</a>
+      <h1 class="mt-4 text-[30px] sm:text-[40px] font-[800] tracking-[-0.03em] leading-[1.05]">{post.data.title}</h1>
+      <p class="mt-3 text-[16px] leading-relaxed text-[var(--color-text-muted)]">{post.data.description}</p>
+      <div class="mt-4">
+        <ArticleMeta publishDate={post.data.publishDate} updateDate={post.data.updateDate} author={post.data.author} readingTime={post.data.readingTime} category={post.data.category} />
+      </div>
+    </div>
+
+    <!-- Cover - CLS 0 with explicit dimensions -->
+    <figure class="relative overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-[var(--color-surface)]">
+      <img src={post.data.cover.src} alt={post.data.cover.alt} width={post.data.cover.width ?? 1200} height={post.data.cover.height ?? 630} loading="eager" decoding="async" fetchpriority="high" class="w-full h-auto object-cover" />
+      <figcaption class="px-4 py-2 text-[12px] text-[var(--color-text-faint)] border-t border-[var(--color-border)]">{post.data.cover.alt}</figcaption>
+    </figure>
+
+    <!-- TL;DR - AEO / GEO answer first -->
+    {post.data.excerpt && (
+      <div id="tldr" class="mt-6 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5">
+        <div class="text-[11px] font-[800] tracking-widest text-[var(--color-text-faint)]">TL;DR — TRẢ LỜI NHANH</div>
+        <p class="mt-2 text-[14px] leading-relaxed">{post.data.excerpt}</p>
+      </div>
+    )}
+
+    <!-- Article -->
+    <article class="prose prose-invert mt-8">
+      <Content />
+    </article>
+
+    <!-- Sources - E-E-A-T & GEO -->
+    {post.data.sources && post.data.sources.length > 0 && (
+      <section class="mt-10 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5">
+        <h2 class="text-[13px] font-[700] tracking-widest text-[var(--color-text-faint)]">NGUỒN & KIỂM CHỨNG</h2>
+        <ul class="mt-3 space-y-2 text-[13px]">
+          {post.data.sources.map(s => (
+            <li class="flex gap-2">
+              <span class="text-[var(--color-primary)]">↗</span>
+              <a href={s.url} target="_blank" rel="noopener noreferrer" class="hover:underline font-[500]">{s.title}</a>
+              {s.publisher && <span class="text-[var(--color-text-faint)]">— {s.publisher}</span>}
+            </li>
+          ))}
+        </ul>
+        <p class="mt-3 text-[12px] text-[var(--color-text-faint)]">Nội dung được tổng hợp & viết lại, có biên tập. Ghi nguồn đầy đủ theo chuẩn SDO.</p>
+      </section>
+    )}
+
+    <!-- FAQ - AEO -->
+    {post.data.faq && post.data.faq.length > 0 && (
+      <section class="mt-8 rounded-2xl border border-[var(--color-border)] p-5">
+        <h2 class="text-[16px] font-[700] tracking-[-0.02em]">Câu hỏi thường gặp</h2>
+        <div class="mt-4 space-y-4">
+          {post.data.faq.map(f => (
+            <details class="group rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-4 open:bg-[var(--color-bg-elevated)]">
+              <summary class="font-[600] text-[14px] cursor-pointer list-none flex justify-between gap-4">{f.question} <span class="text-[var(--color-text-faint)] group-open:rotate-180 transition">⌄</span></summary>
+              <p class="mt-2 text-[13px] leading-relaxed text-[var(--color-text-muted)]">{f.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Tags -->
+    {post.data.tags.length > 0 && (
+      <div class="mt-8 flex flex-wrap gap-2">
+        {post.data.tags.map(t => <a href={`/tags/${t}`} class="px-3 py-1.5 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[12px] font-[500] hover:bg-white hover:text-black transition">#{t}</a>)}
+      </div>
+    )}
+
+    <!-- Author box - GEO E-E-A-T -->
+    <div class="mt-8 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 flex gap-4">
+      <div class="size-10 rounded-full bg-gradient-to-br from-[oklch(0.62_0.22_275)] to-[oklch(0.70_0.18_320)] grid place-items-center text-white font-[800] shrink-0">{post.data.author.name.slice(0,1)}</div>
+      <div>
+        <div class="font-[700] text-[14px]">{post.data.author.name} — {post.data.author.role ?? 'Editor'}</div>
+        <p class="text-[13px] leading-relaxed text-[var(--color-text-muted)]">Biên tập viên n0ai, chuyên {post.data.category.toLowerCase()}. Mỗi bài được kiểm chứng nguồn & cập nhật hằng ngày.</p>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

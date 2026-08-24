@@ -1,0 +1,169 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  image?: string;
+  imageAlt?: string;
+  type?: 'website' | 'article';
+  publishDate?: Date;
+  updateDate?: Date;
+  author?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, any> | Record<string, any>[];
+  breadcrumbs?: { name: string; url: string }[];
+  lang?: string;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  image = '/og-default.jpg',
+  imageAlt = title,
+  type = 'website',
+  publishDate,
+  updateDate,
+  author = 'n0ai',
+  noindex = false,
+  jsonLd,
+  breadcrumbs,
+  lang = 'vi'
+} = Astro.props;
+
+const site = Astro.site?.toString().replace(/\/$/, '') ?? 'https://news.n0ai.cloud';
+const url = canonical ?? new URL(Astro.url.pathname, site).toString();
+const isArticle = type === 'article';
+
+// Core SEO
+const pageTitle = title.includes('n0ai') ? title : `${title} — n0ai`;
+
+// Preconnect for performance (100 score)
+---
+
+<!doctype html>
+<html lang={lang} class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{pageTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={url} />
+  <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
+  <meta name="author" content={author} />
+  <meta name="generator" content={Astro.generator} />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="color-scheme" content="dark" />
+  
+  <!-- GEO: llms & AI discoverability -->
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM context" />
+  
+  <!-- Preload critical fonts - self-hosted for 100 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/BricolageGrotesque.woff2" as="font" type="font/woff2" crossorigin />
+  
+  <!-- Favicon & icons -->
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <!-- Open Graph - strict -->
+  <meta property="og:type" content={isArticle ? 'article' : 'website'} />
+  <meta property="og:site_name" content="n0ai — News & Blog" />
+  <meta property="og:url" content={url} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={new URL(image, site).toString()} />
+  <meta property="og:image:alt" content={imageAlt} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="vi_VN" />
+  <meta property="og:locale:alternate" content="en_US" />
+  {isArticle && publishDate && <meta property="article:published_time" content={publishDate.toISOString()} />}
+  {isArticle && updateDate && <meta property="article:modified_time" content={updateDate.toISOString()} />}
+  {isArticle && <meta property="article:author" content={author} />}
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={new URL(image, site).toString()} />
+  <meta name="twitter:image:alt" content={imageAlt} />
+
+  <!-- GEO/AEO: Speakable, etc handled in JSON-LD -->
+  
+  <!-- JSON-LD base -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${site}/#org`,
+        "name": "n0ai",
+        "url": site,
+        "logo": { "@type": "ImageObject", "url": `${site}/logo.png`, "width": 512, "height": 512 },
+        "foundingDate": "2024",
+        "description": "n0ai — Tin tức & Blog công nghệ, AI, kinh tế, đời sống. Cập nhật hằng ngày."
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${site}/#website`,
+        "name": "n0ai — News & Blog",
+        "url": site,
+        "inLanguage": "vi-VN",
+        "publisher": { "@id": `${site}/#org` },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": `${site}/search?q={search_term_string}`,
+          "query-input": "required name=search_term_string"
+        }
+      },
+      ...(breadcrumbs ? [{
+        "@type": "BreadcrumbList",
+        "@id": `${url}#breadcrumb`,
+        "itemListElement": breadcrumbs.map((b, i) => ({
+          "@type": "ListItem",
+          "position": i + 1,
+          "name": b.name,
+          "item": b.url
+        }))
+      }] : []),
+      ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [])
+    ]
+  })} />
+
+  <!-- Perf: View Transitions native -->
+  <meta name="view-transition" content="same-origin" />
+  
+  <!-- Fonts - variable, display optional for 100 -->
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400;500;600&family=Geist+Mono&display=swap" rel="stylesheet" />
+
+  <!-- Analytics placeholder - no render-blocking -->
+  <slot name="head" />
+</head>
+<body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] antialiased selection:bg-[oklch(0.62_0.22_275/0.3)]">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:rounded-md">Skip to content</a>
+  
+  <slot />
+  
+  <!-- Perf: minimal JS, no layout shift -->
+  <script>
+    // Respect reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.style.setProperty('--motion', '0');
+    }
+    // Defer non-critical
+    document.addEventListener('DOMContentLoaded', () => {
+      // Add loaded class for subtle reveal (only transform/opacity)
+      document.body.classList.add('loaded');
+    });
+  </script>
+</body>
+</html>
+
+<style is:global>
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+</style>

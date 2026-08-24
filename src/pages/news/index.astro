@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import BentoCard from '../../components/BentoCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('news')).filter(p => !p.data.draft).sort((a,b) => b.data.publishDate.getTime() - a.data.publishDate.getTime());
+const breaking = posts.filter(p => p.data.breaking);
+---
+
+<BaseLayout
+  title="Tin nhanh 24h — n0ai News"
+  description="Tin nhanh n0ai: cập nhật 06:00 & 18:00 hằng ngày từ nguồn uy tín, viết lại hoàn chỉnh, có nguồn & FAQ. Chuẩn SDO/GEO/AEO."
+  breadcrumbs={[{name:'Home', url:'https://news.n0ai.cloud/'}, {name:'News', url:'https://news.n0ai.cloud/news'}]}
+>
+  <Header />
+  <main class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex items-center gap-3">
+      <h1 class="text-[32px] font-[800] tracking-[-0.03em] leading-none flex items-center gap-2">
+        <span class="size-2.5 rounded-full bg-red-500 animate-pulse"></span> Tin nhanh
+      </h1>
+      <span class="px-2.5 py-1 rounded-full bg-red-500 text-white text-[11px] font-[800] tracking-widest">LIVE</span>
+      <span class="text-[13px] text-[var(--color-text-muted)]">Cập nhật tự động 2 lần/ngày</span>
+    </div>
+
+    {breaking.length > 0 && (
+      <div class="mt-6 rounded-2xl bg-red-500/10 border border-red-500/20 p-4 flex items-center gap-3">
+        <span class="px-2 py-1 rounded-full bg-red-500 text-white text-[11px] font-[800] tracking-widest">BREAKING</span>
+        <a href={`/news/${breaking[0].id}`} class="font-[600] hover:underline line-clamp-1">{breaking[0].data.title}</a>
+      </div>
+    )}
+
+    <div class="mt-8 bento">
+      {posts.length === 0 && (
+        <div class="col-span-12 rounded-2xl border border-dashed border-[var(--color-border)] p-12 text-center text-[var(--color-text-muted)]">
+          Chưa có tin — sẽ tự động lúc 06:00 ICT.
+        </div>
+      )}
+      {posts.map((post, i) => (
+        <BentoCard
+          title={post.data.title}
+          description={post.data.description}
+          href={`/news/${post.id}`}
+          image={post.data.cover.src}
+          kicker={post.data.breaking ? 'BREAKING' : post.data.category}
+          meta={`${post.data.publishDate.toLocaleDateString('vi-VN')} • ${post.data.location ?? ''}`}
+          size={i===0 ? 'large' : 'medium'}
+          featured={i===0}
+        />
+      ))}
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

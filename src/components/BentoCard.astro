@@ -1,0 +1,39 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  href: string;
+  image?: string;
+  imageAlt?: string;
+  kicker?: string;
+  meta?: string;
+  featured?: boolean;
+  size?: 'large' | 'medium' | 'small';
+  tag?: string;
+}
+const { title, description, href, image, imageAlt = title, kicker, meta, featured = false, size = 'medium', tag } = Astro.props;
+const sizeClass = {
+  large: 'col-span-12 lg:col-span-8 min-h-[380px]',
+  medium: 'col-span-12 md:col-span-6 lg:col-span-4 min-h-[300px]',
+  small: 'col-span-12 md:col-span-6 lg:col-span-4 min-h-[260px]',
+}[size];
+---
+
+<a href={href} class={`group relative overflow-hidden rounded-[20px] bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-hover)] transition-all duration-300 flex flex-col ${sizeClass} ${featured ? 'ring-1 ring-white/10 shadow-[0_16px_48px_oklch(0_0_0/0.25)]' : ''}`}>
+  {image && (
+    <div class="relative h-[52%] overflow-hidden bg-[var(--color-bg-muted)]">
+      <img src={image} alt={imageAlt} width="800" height="450" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]" />
+      <div class="absolute inset-0 bg-gradient-to-t from-[oklch(0_0_0/0.5)] via-transparent to-transparent opacity-60"></div>
+      {kicker && <span class="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full bg-white text-black text-[11px] font-[700] tracking-wider">{kicker}</span>}
+      {tag && <span class="absolute bottom-3 left-3 inline-flex px-2 py-1 rounded-full bg-black/60 backdrop-blur text-white text-[11px] font-[600] border border-white/10">{tag}</span>}
+    </div>
+  )}
+  <div class="flex-1 p-5 flex flex-col gap-2">
+    {!image && kicker && <span class="inline-flex w-fit px-2 py-1 rounded-full bg-white text-black text-[11px] font-[700] tracking-wider">{kicker}</span>}
+    <h3 class="font-[700] tracking-[-0.02em] leading-[1.15] line-clamp-2 group-hover:text-white transition-colors" style={`font-size:${size==='large'?'1.5rem': size==='medium'?'1.15rem' : '1.05rem'}`}>{title}</h3>
+    {description && <p class="text-[13.5px] leading-relaxed text-[var(--color-text-muted)] line-clamp-2">{description}</p>}
+    {meta && <span class="mt-auto pt-2 text-[12px] text-[var(--color-text-faint)] flex items-center gap-1.5"><span class="size-1 rounded-full bg-[var(--color-primary)]"></span>{meta}</span>}
+  </div>
+  <!-- subtle hover glow -->
+  <div class="pointer-events-none absolute -inset-px rounded-[20px] opacity-0 group-hover:opacity-100 transition duration-300" style="background: radial-gradient(600px circle at var(--mouse-x,50%) var(--mouse-y,50%), oklch(0.62 0.22 275 / 0.08), transparent 40%);"></div>
+</a>

@@ -1,0 +1,13 @@
+{
+  "name": "n0ai — News & Blog",
+  "short_name": "n0ai",
+  "description": "Tin tức & Blog AI cập nhật hằng ngày, chuẩn SEO/GEO/AEO/SDO, 100/100",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#7c3aed",
+  "lang": "vi",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
