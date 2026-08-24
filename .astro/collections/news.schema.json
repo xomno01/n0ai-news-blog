@@ -13,9 +13,7 @@
       "maxLength": 200
     },
     "excerpt": {
-      "type": "string",
-      "minLength": 20,
-      "maxLength": 300
+      "type": "string"
     },
     "publishDate": {
       "type": "string",
@@ -27,7 +25,7 @@
     },
     "author": {
       "default": {
-        "name": "n0ai Editorial"
+        "name": "n0ai Newsdesk"
       },
       "type": "object",
       "properties": {
@@ -76,9 +74,6 @@
         "alt"
       ]
     },
-    "coverAlt": {
-      "type": "string"
-    },
     "featured": {
       "default": false,
       "type": "boolean"
@@ -90,17 +85,12 @@
     "readingTime": {
       "type": "number"
     },
-    "seo": {
-      "type": "object",
-      "properties": {
-        "canonical": {
-          "type": "string",
-          "format": "uri"
-        },
-        "noindex": {
-          "type": "boolean"
-        }
-      }
+    "breaking": {
+      "default": false,
+      "type": "boolean"
+    },
+    "location": {
+      "type": "string"
     },
     "sources": {
       "type": "array",
@@ -141,13 +131,6 @@
           "answer"
         ]
       }
-    },
-    "breaking": {
-      "default": false,
-      "type": "boolean"
-    },
-    "location": {
-      "type": "string"
     },
     "$schema": {
       "type": "string"
