@@ -1,66 +1,44 @@
 ---
-const nav = [
-  { href: '/', label: 'Home' },
-  { href: '/news', label: 'News', badge: 'LIVE' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/topics', label: 'Chủ đề' },
-];
 const pathname = Astro.url.pathname;
+const isNews = pathname.startsWith('/news');
+const isBlog = pathname.startsWith('/blog');
 ---
 
-<header class="sticky top-0 z-40 backdrop-blur-xl bg-[oklch(0.09_0.015_260/0.7)] border-b border-[var(--color-border)]">
+<header class="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[oklch(0.07_0.008_260/0.92)] backdrop-blur-xl">
+  <!-- Ticker for news -->
+  <div class="hidden lg:block border-b border-[var(--color-border)]/60 bg-black text-white">
+    <div class="mx-auto max-w-[1280px] px-6 py-1.5 flex items-center gap-3 mono text-[11px]">
+      <span class="px-1.5 py-0.5 bg-[var(--color-news)] text-white font-[800] tracking-widest">LIVE</span>
+      <span class="text-white/70">06:00 ICT cập nhật • 15 bài/ngày • DeepSeek v4 Flash • Nguồn: VnExpress, Tuổi Trẻ, NYTimes</span>
+      <span class="ml-auto text-white/50">n0ai.cloud — News & Blog</span>
+    </div>
+  </div>
   <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
-    <div class="flex h-[64px] items-center justify-between gap-4">
-      <!-- Logo -->
-      <a href="/" class="flex items-center gap-3 group" aria-label="n0ai home">
-        <div class="size-9 rounded-xl bg-gradient-to-br from-[oklch(0.62_0.22_275)] to-[oklch(0.70_0.18_320)] grid place-items-center text-white font-black tracking-tighter text-[15px] group-hover:scale-[1.02] transition-transform">n0</div>
-        <span class="hidden sm:block font-[700] tracking-[-0.02em] text-[18px]">n0ai<span class="text-[var(--color-text-muted)] font-[500]">.cloud</span></span>
-        <span class="hidden lg:inline-flex items-center gap-1.5 ml-2 px-2 py-1 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[11px] font-[600] tracking-wide text-[var(--color-text-muted)]">
-          <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span> DAILY AUTO
-        </span>
+    <div class="flex h-[62px] items-center gap-6">
+      <a href="/" class="flex items-center gap-3">
+        <div class="size-8 grid place-items-center bg-white text-black font-[900] tracking-tighter text-[14px]">n0</div>
+        <div class="leading-none">
+          <div class="font-[800] tracking-[-0.02em] text-[16px]">n0ai<span class="font-[400] text-[var(--color-text-muted)]">.cloud</span></div>
+          <div class="mono text-[10px] tracking-[0.12em] text-[var(--color-text-faint)]">EST. 2024 — HANOI</div>
+        </div>
       </a>
-
-      <!-- Nav -->
-      <nav class="hidden md:flex items-center gap-1" aria-label="Primary">
-        {nav.map(item => {
-          const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-          return (
-            <a href={item.href} class={`relative px-3.5 py-2 rounded-full text-[14px] font-[500] tracking-[-0.01em] transition ${active ? 'bg-white text-black' : 'text-[var(--color-text-muted)] hover:text-white hover:bg-[var(--color-surface)]'}`}>
-              {item.label}
-              {item.badge && <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-[700] tracking-wider leading-none">{item.badge}</span>}
-            </a>
-          )
-        })}
+      <nav class="hidden md:flex items-center gap-1 ml-4">
+        <a href="/news" class={`px-3.5 py-2 mono text-[12px] font-[700] tracking-wide border ${isNews ? 'bg-[var(--color-news)] text-white border-[var(--color-news)]' : 'border-transparent text-[var(--color-text-muted)] hover:text-white'}`}>NEWS</a>
+        <a href="/blog" class={`px-3.5 py-2 mono text-[12px] font-[700] tracking-wide border ${isBlog ? 'bg-[var(--color-blog)] text-white border-[var(--color-blog)]' : 'border-transparent text-[var(--color-text-muted)] hover:text-white'}`}>BLOG</a>
+        <a href="/topics" class="px-3 py-2 mono text-[12px] text-[var(--color-text-faint)] hover:text-white">CHỦ ĐỀ</a>
       </nav>
-
-      <!-- Actions -->
-      <div class="flex items-center gap-2">
-        <a href="/search" class="hidden sm:inline-flex size-9 grid place-items-center rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-white hover:border-[var(--color-border-strong)] transition" aria-label="Search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20L16 16"/></svg>
-        </a>
-        <a href="/rss.xml" class="hidden sm:inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full bg-white text-black text-[13px] font-[600] hover:bg-zinc-100 transition">
-          Subscribe
-        </a>
-        <!-- Mobile -->
-        <button id="menu-btn" class="md:hidden size-9 grid place-items-center rounded-full bg-[var(--color-surface)] border border-[var(--color-border)]" aria-label="Menu" aria-expanded="false">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
+      <div class="ml-auto flex items-center gap-2">
+        <span class="hidden sm:inline-flex mono text-[11px] px-2.5 py-1 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)]">100/100 SPEED</span>
+        <a href="/rss.xml" class="hidden sm:inline-flex h-8 px-3 items-center bg-white text-black mono text-[11px] font-[700] hover:bg-zinc-100">RSS</a>
+        <button id="m" class="md:hidden size-8 grid place-items-center border border-[var(--color-border)] bg-[var(--color-surface)]">≡</button>
       </div>
     </div>
-    <!-- Mobile nav -->
-    <div id="mobile-nav" class="hidden md:hidden pb-4">
-      <nav class="grid gap-1">
-        {nav.map(item => <a href={item.href} class="px-3 py-2.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[14px] font-[500]">{item.label}</a>)}
+    <div id="mm" class="hidden md:hidden pb-3">
+      <nav class="grid gap-1 mono text-[13px]">
+        <a href="/news" class="px-3 py-2 border border-[var(--color-border)] bg-[var(--color-surface)]">NEWS</a>
+        <a href="/blog" class="px-3 py-2 border border-[var(--color-border)] bg-[var(--color-surface)]">BLOG</a>
       </nav>
     </div>
   </div>
 </header>
-
-<script>
-  const btn = document.getElementById('menu-btn');
-  const nav = document.getElementById('mobile-nav');
-  btn?.addEventListener('click', () => {
-    const open = nav?.classList.toggle('hidden') === false;
-    btn.setAttribute('aria-expanded', String(open));
-  });
-</script>
+<script>document.getElementById('m')?.addEventListener('click',()=>document.getElementById('mm')?.classList.toggle('hidden'))</script>
