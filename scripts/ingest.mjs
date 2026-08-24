@@ -1,15 +1,15 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 /**
- * n0ai — Daily auto ingest
- * - Fetch RSS từ nguồn uy tín hằng ngày
- * - Rewrite thành bài hoàn chỉnh chuẩn SEO/SDO/GEO/AEO
- * - Ghi ra markdown vào src/content/blog|news
+ * n0ai â€” Daily auto ingest
+ * - Fetch RSS tá»« nguá»“n uy tÃ­n háº±ng ngÃ y
+ * - Rewrite thÃ nh bÃ i hoÃ n chá»‰nh chuáº©n SEO/SDO/GEO/AEO
+ * - Ghi ra markdown vÃ o src/content/blog|news
  * 
- * Chạy: node scripts/ingest.mjs
+ * Cháº¡y: node scripts/ingest.mjs
  * Cron: 0 6,18 * * * (06:00 & 18:00 ICT)
  * 
- * AI: ưu tiên thueapi.luuvan.site / subapi.luuvan.site (OpenAI-compatible)
- * Fallback: template rewrite nếu không có API key
+ * AI: Æ°u tiÃªn thueapi.luuvan.site / subapi.luuvan.site (OpenAI-compatible)
+ * Fallback: template rewrite náº¿u khÃ´ng cÃ³ API key
  */
 
 import fs from 'node:fs/promises';
@@ -20,19 +20,19 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const BLOG_DIR = path.join(ROOT, 'src/content/blog');
 const NEWS_DIR = path.join(ROOT, 'src/content/news');
 
-// --- Cấu hình nguồn — theo tin HOT hằng ngày ---
+// --- Cáº¥u hÃ¬nh nguá»“n â€” theo tin HOT háº±ng ngÃ y ---
 const SOURCES = {
   news: [
-    { url: 'https://vnexpress.net/rss/tin-moi-nhat.rss', category: 'Đời sống', publisher: 'VnExpress', lang: 'vi' },
-    { url: 'https://vnexpress.net/rss/tin-nong.rss', category: 'Đời sống', publisher: 'VnExpress', lang: 'vi' },
-    { url: 'https://vnexpress.net/rss/kinh-doanh.rss', category: 'Kinh tế', publisher: 'VnExpress', lang: 'vi' },
-    { url: 'https://vnexpress.net/rss/khoa-hoc.rss', category: 'Công nghệ', publisher: 'VnExpress', lang: 'vi' },
-    { url: 'https://vnexpress.net/rss/the-gioi.rss', category: 'Đời sống', publisher: 'VnExpress', lang: 'vi' },
-    { url: 'https://cafebiz.vn/rss/home.rss', category: 'Kinh tế', publisher: 'CafeBiz', lang: 'vi' },
-    { url: 'https://tuoitre.vn/rss/tin-moi-nhat.rss', category: 'Đời sống', publisher: 'Tuổi Trẻ', lang: 'vi' },
-    { url: 'https://thanhnien.vn/rss/home.rss', category: 'Đời sống', publisher: 'Thanh Niên', lang: 'vi' },
-    { url: 'https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml', category: 'Công nghệ', publisher: 'NYTimes', lang: 'en' },
-    { url: 'https://www.theverge.com/rss/index.xml', category: 'Công nghệ', publisher: 'The Verge', lang: 'en' },
+    { url: 'https://vnexpress.net/rss/tin-moi-nhat.rss', category: 'Äá»i sá»‘ng', publisher: 'VnExpress', lang: 'vi' },
+    { url: 'https://vnexpress.net/rss/tin-nong.rss', category: 'Äá»i sá»‘ng', publisher: 'VnExpress', lang: 'vi' },
+    { url: 'https://vnexpress.net/rss/kinh-doanh.rss', category: 'Kinh táº¿', publisher: 'VnExpress', lang: 'vi' },
+    { url: 'https://vnexpress.net/rss/khoa-hoc.rss', category: 'CÃ´ng nghá»‡', publisher: 'VnExpress', lang: 'vi' },
+    { url: 'https://vnexpress.net/rss/the-gioi.rss', category: 'Äá»i sá»‘ng', publisher: 'VnExpress', lang: 'vi' },
+    { url: 'https://cafebiz.vn/rss/home.rss', category: 'Kinh táº¿', publisher: 'CafeBiz', lang: 'vi' },
+    { url: 'https://tuoitre.vn/rss/tin-moi-nhat.rss', category: 'Äá»i sá»‘ng', publisher: 'Tuá»•i Tráº»', lang: 'vi' },
+    { url: 'https://thanhnien.vn/rss/home.rss', category: 'Äá»i sá»‘ng', publisher: 'Thanh NiÃªn', lang: 'vi' },
+    { url: 'https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml', category: 'CÃ´ng nghá»‡', publisher: 'NYTimes', lang: 'en' },
+    { url: 'https://www.theverge.com/rss/index.xml', category: 'CÃ´ng nghá»‡', publisher: 'The Verge', lang: 'en' },
   ],
   blog: [
     { url: 'https://openai.com/blog/rss.xml', category: 'AI', publisher: 'OpenAI', lang: 'en' },
@@ -52,16 +52,16 @@ function cleanText(s = '') {
   return s.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1').replace(/<[^>]+>/g, '').replace(/&[^;]+;/g, ' ').trim().slice(0, 500);
 }
 function pickImage(item, category) {
-  // Map category -> unsplash fallback (đảm bảo luôn có ảnh đẹp, CLS 0)
+  // Map category -> unsplash fallback (Ä‘áº£m báº£o luÃ´n cÃ³ áº£nh Ä‘áº¹p, CLS 0)
   const map = {
-    'Công nghệ': 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&auto=format&fit=crop&q=80',
-    'Kinh tế': 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&auto=format&fit=crop&q=80',
-    'Đời sống': 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&auto=format&fit=crop&q=80',
+    'CÃ´ng nghá»‡': 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&auto=format&fit=crop&q=80',
+    'Kinh táº¿': 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&auto=format&fit=crop&q=80',
+    'Äá»i sá»‘ng': 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&auto=format&fit=crop&q=80',
     'AI': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&auto=format&fit=crop&q=80',
   };
-  // Thử lấy enclosure/media:content
+  // Thá»­ láº¥y enclosure/media:content
   const enclosure = item.enclosure?.['@_url'] || item['media:content']?.['@_url'] || null;
-  return enclosure || map[category] || map['Công nghệ'];
+  return enclosure || map[category] || map['CÃ´ng nghá»‡'];
 }
 function estimateReadingTime(text) {
   const words = text.split(/\s+/).length;
@@ -74,37 +74,37 @@ async function rewriteWithAI({ title, description, link, publisher, category, la
   const baseURL = process.env.AI_BASE_URL || 'https://subapi.luuvan.site/v1';
   const model = process.env.AI_MODEL || 'deepseek-v4-flash';
 
-  // Prompt chuẩn SEO/GEO/AEO/SDO nghiêm ngặt — theo tin hot hằng ngày
-  const systemPrompt = `Bạn là biên tập viên n0ai — chuyên viết lại tin tức/blog chuẩn SEO, GEO, AEO, SDO nghiêm ngặt, theo chủ đề HOT nhất mỗi ngày.
-YÊU CẦU BẮT BUỘC:
-- Dựa trên tin gốc đang HOT, viết lại tiếng Việt, giọng trung tính, E-E-A-T, không clickbait, giữ sự thật
-- Tự động chọn góc nhìn hấp dẫn nhất từ tin hot (AI, công nghệ, kinh tế, đời sống) để bài có giá trị
-- Cấu trúc nghiêm ngặt: TL;DR 1 đoạn 45 từ + 3-4 mục H2 (mỗi mục 150-200 từ) + kết luận 80 từ + 2 FAQ chi tiết
-- Mỗi bài 800-1100 từ, đoạn ngắn 2-3 câu, câu ngắn, dễ đọc, tối ưu featured snippet
-- Tuyệt đối không bịa số liệu, chỉ dùng thông tin từ tóm tắt gốc, có thể mở rộng ngữ cảnh chung nhưng không thêm số liệu giả
-- Trả về JSON duy nhất: {"title":"...","description":"...","excerpt":"...","body":"markdown...","tags":["..."],"faq":[{"question":"...","answer":"..."}]}
-- title 50-65 ký tự hấp dẫn chuẩn SEO, description 145-155 ký tự, excerpt 45-55 từ, tags 3-4 từ khóa hot`;
+  // Prompt chuáº©n SEO/GEO/AEO/SDO nghiÃªm ngáº·t â€” theo tin hot háº±ng ngÃ y
+  const systemPrompt = `Báº¡n lÃ  biÃªn táº­p viÃªn n0ai â€” chuyÃªn viáº¿t láº¡i tin tá»©c/blog chuáº©n SEO, GEO, AEO, SDO nghiÃªm ngáº·t, theo chá»§ Ä‘á» HOT nháº¥t má»—i ngÃ y.
+YÃŠU Cáº¦U Báº®T BUá»˜C:
+- Dá»±a trÃªn tin gá»‘c Ä‘ang HOT, viáº¿t láº¡i tiáº¿ng Viá»‡t, giá»ng trung tÃ­nh, E-E-A-T, khÃ´ng clickbait, giá»¯ sá»± tháº­t
+- Tá»± Ä‘á»™ng chá»n gÃ³c nhÃ¬n háº¥p dáº«n nháº¥t tá»« tin hot (AI, cÃ´ng nghá»‡, kinh táº¿, Ä‘á»i sá»‘ng) Ä‘á»ƒ bÃ i cÃ³ giÃ¡ trá»‹
+- Cáº¥u trÃºc nghiÃªm ngáº·t: TL;DR 1 Ä‘oáº¡n 45 tá»« + 3-4 má»¥c H2 (má»—i má»¥c 150-200 tá»«) + káº¿t luáº­n 80 tá»« + 2 FAQ chi tiáº¿t
+- Má»—i bÃ i 800-1100 tá»«, Ä‘oáº¡n ngáº¯n 2-3 cÃ¢u, cÃ¢u ngáº¯n, dá»… Ä‘á»c, tá»‘i Æ°u featured snippet
+- Tuyá»‡t Ä‘á»‘i khÃ´ng bá»‹a sá»‘ liá»‡u, chá»‰ dÃ¹ng thÃ´ng tin tá»« tÃ³m táº¯t gá»‘c, cÃ³ thá»ƒ má»Ÿ rá»™ng ngá»¯ cáº£nh chung nhÆ°ng khÃ´ng thÃªm sá»‘ liá»‡u giáº£
+- Tráº£ vá» JSON duy nháº¥t: {"title":"...","description":"...","excerpt":"...","body":"markdown...","tags":["..."],"faq":[{"question":"...","answer":"..."}]}
+- title 50-65 kÃ½ tá»± háº¥p dáº«n chuáº©n SEO, description 145-155 kÃ½ tá»±, excerpt 45-55 tá»«, tags 3-4 tá»« khÃ³a hot`;
 
-  const userPrompt = `Gốc: Tiêu đề: ${title}
-Mô tả: ${description}
-Nguồn: ${publisher} — ${link}
+  const userPrompt = `Gá»‘c: TiÃªu Ä‘á»: ${title}
+MÃ´ táº£: ${description}
+Nguá»“n: ${publisher} â€” ${link}
 Category: ${category}
-Ngôn ngữ gốc: ${lang}
+NgÃ´n ngá»¯ gá»‘c: ${lang}
 
-Hãy viết lại thành bài hoàn chỉnh theo yêu cầu trên.`;
+HÃ£y viáº¿t láº¡i thÃ nh bÃ i hoÃ n chá»‰nh theo yÃªu cáº§u trÃªn.`;
 
   if (!apiKey) {
-    // Fallback template — vẫn ra bài hợp lệ, không cần AI
-    console.log(`  ↳ No AI key — dùng fallback template cho: ${title.slice(0,50)}`);
+    // Fallback template â€” váº«n ra bÃ i há»£p lá»‡, khÃ´ng cáº§n AI
+    console.log(`  â†³ No AI key â€” dÃ¹ng fallback template cho: ${title.slice(0,50)}`);
     return {
       title: title.slice(0, 75),
-      description: cleanText(description).slice(0, 150) || `Cập nhật mới nhất về ${title.slice(0,40)} — phân tích ngắn gọn, có nguồn kiểm chứng.`,
-      excerpt: cleanText(description).slice(0, 120) + ' Bài được tổng hợp và biên tập, có FAQ và nguồn gốc rõ ràng.',
-      body: `## Tổng quan\n\n${cleanText(description)}\n\nBài gốc được đăng tại [${publisher}](${link}). Dưới đây là tóm tắt và phân tích nhanh của n0ai.\n\n## Điểm chính\n\n- **Bối cảnh:** ${cleanText(description).slice(0, 200)}\n- **Tác động:** Nội dung này ảnh hưởng tới ${category.toLowerCase()} và người dùng cuối trong ngắn hạn.\n- **Cần theo dõi:** Diễn biến tiếp theo và phản ứng thị trường.\n\n## Phân tích nhanh\n\nNội dung gốc cung cấp thông tin ban đầu, n0ai biên tập lại để dễ đọc, thêm ngữ cảnh và cấu trúc. Chúng tôi giữ nguyên sự kiện, không thêm số liệu chưa kiểm chứng.\n\n## Kết luận\n\nĐây là cập nhật đáng chú ý trong lĩnh vực ${category.toLowerCase()}. n0ai sẽ tiếp tục theo dõi và cập nhật khi có nguồn chính thức mới.\n`,
+      description: cleanText(description).slice(0, 150) || `Cáº­p nháº­t má»›i nháº¥t vá» ${title.slice(0,40)} â€” phÃ¢n tÃ­ch ngáº¯n gá»n, cÃ³ nguá»“n kiá»ƒm chá»©ng.`,
+      excerpt: cleanText(description).slice(0, 120) + ' BÃ i Ä‘Æ°á»£c tá»•ng há»£p vÃ  biÃªn táº­p, cÃ³ FAQ vÃ  nguá»“n gá»‘c rÃµ rÃ ng.',
+      body: `## Tá»•ng quan\n\n${cleanText(description)}\n\nBÃ i gá»‘c Ä‘Æ°á»£c Ä‘Äƒng táº¡i [${publisher}](${link}). DÆ°á»›i Ä‘Ã¢y lÃ  tÃ³m táº¯t vÃ  phÃ¢n tÃ­ch nhanh cá»§a n0ai.\n\n## Äiá»ƒm chÃ­nh\n\n- **Bá»‘i cáº£nh:** ${cleanText(description).slice(0, 200)}\n- **TÃ¡c Ä‘á»™ng:** Ná»™i dung nÃ y áº£nh hÆ°á»Ÿng tá»›i ${category.toLowerCase()} vÃ  ngÆ°á»i dÃ¹ng cuá»‘i trong ngáº¯n háº¡n.\n- **Cáº§n theo dÃµi:** Diá»…n biáº¿n tiáº¿p theo vÃ  pháº£n á»©ng thá»‹ trÆ°á»ng.\n\n## PhÃ¢n tÃ­ch nhanh\n\nNá»™i dung gá»‘c cung cáº¥p thÃ´ng tin ban Ä‘áº§u, n0ai biÃªn táº­p láº¡i Ä‘á»ƒ dá»… Ä‘á»c, thÃªm ngá»¯ cáº£nh vÃ  cáº¥u trÃºc. ChÃºng tÃ´i giá»¯ nguyÃªn sá»± kiá»‡n, khÃ´ng thÃªm sá»‘ liá»‡u chÆ°a kiá»ƒm chá»©ng.\n\n## Káº¿t luáº­n\n\nÄÃ¢y lÃ  cáº­p nháº­t Ä‘Ã¡ng chÃº Ã½ trong lÄ©nh vá»±c ${category.toLowerCase()}. n0ai sáº½ tiáº¿p tá»¥c theo dÃµi vÃ  cáº­p nháº­t khi cÃ³ nguá»“n chÃ­nh thá»©c má»›i.\n`,
       tags: [category, publisher, 'Tin nhanh'].filter(Boolean),
       faq: [
-        { question: `Nguồn gốc của tin "${title.slice(0,40)}..." là gì?`, answer: `Bài được tổng hợp từ ${publisher} (${link}), viết lại hoàn chỉnh bởi n0ai, có ghi nguồn đầy đủ.` },
-        { question: `Vì sao tin này quan trọng với ${category.toLowerCase()}?`, answer: `Vì nó phản ánh xu hướng mới trong ${category.toLowerCase()}, ảnh hưởng tới quyết định của người đọc và doanh nghiệp. Theo dõi thêm tại nguồn gốc.` }
+        { question: `Nguá»“n gá»‘c cá»§a tin "${title.slice(0,40)}..." lÃ  gÃ¬?`, answer: `BÃ i Ä‘Æ°á»£c tá»•ng há»£p tá»« ${publisher} (${link}), viáº¿t láº¡i hoÃ n chá»‰nh bá»Ÿi n0ai, cÃ³ ghi nguá»“n Ä‘áº§y Ä‘á»§.` },
+        { question: `VÃ¬ sao tin nÃ y quan trá»ng vá»›i ${category.toLowerCase()}?`, answer: `VÃ¬ nÃ³ pháº£n Ã¡nh xu hÆ°á»›ng má»›i trong ${category.toLowerCase()}, áº£nh hÆ°á»Ÿng tá»›i quyáº¿t Ä‘á»‹nh cá»§a ngÆ°á»i Ä‘á»c vÃ  doanh nghiá»‡p. Theo dÃµi thÃªm táº¡i nguá»“n gá»‘c.` }
       ]
     };
   }
@@ -119,7 +119,7 @@ Hãy viết lại thành bài hoàn chỉnh theo yêu cầu trên.`;
         model,
         response_format: { type: 'json_object' },
         temperature: 0.7,
-        max_tokens: 2500,
+        max_tokens: 4000,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -141,17 +141,17 @@ Hãy viết lại thành bài hoàn chỉnh theo yêu cầu trên.`;
       throw new Error('No JSON found: ' + content.slice(0,200));
     }
   } catch (e) {
-    console.warn(`  ⚠ AI lỗi, dùng template: ${e.message}`);
-    // Fallback template trực tiếp, không recurse vô hạn
+    console.warn(`  âš  AI lá»—i, dÃ¹ng template: ${e.message}`);
+    // Fallback template trá»±c tiáº¿p, khÃ´ng recurse vÃ´ háº¡n
     return {
       title: title.slice(0, 70),
-      description: cleanText(description).slice(0, 150) || `Cập nhật ${title.slice(0, 40)}`,
-      excerpt: cleanText(description).slice(0, 120) + ' Bài được tổng hợp và biên tập.',
-      body: `## Tổng quan\n\n${cleanText(description)}\n\nBài gốc tại [${publisher}](${link}).\n\n## Điểm chính\n\n- **Bối cảnh:** ${cleanText(description).slice(0, 200)}\n- **Tác động:** Ảnh hưởng tới ${category.toLowerCase()}.\n\n## Phân tích\n\nNội dung được biên tập lại để dễ đọc, giữ nguyên sự kiện.\n\n## Kết luận\n\nCập nhật đáng chú ý trong ${category.toLowerCase()}. Theo dõi thêm tại nguồn.`,
+      description: cleanText(description).slice(0, 150) || `Cáº­p nháº­t ${title.slice(0, 40)}`,
+      excerpt: cleanText(description).slice(0, 120) + ' BÃ i Ä‘Æ°á»£c tá»•ng há»£p vÃ  biÃªn táº­p.',
+      body: `## Tá»•ng quan\n\n${cleanText(description)}\n\nBÃ i gá»‘c táº¡i [${publisher}](${link}).\n\n## Äiá»ƒm chÃ­nh\n\n- **Bá»‘i cáº£nh:** ${cleanText(description).slice(0, 200)}\n- **TÃ¡c Ä‘á»™ng:** áº¢nh hÆ°á»Ÿng tá»›i ${category.toLowerCase()}.\n\n## PhÃ¢n tÃ­ch\n\nNá»™i dung Ä‘Æ°á»£c biÃªn táº­p láº¡i Ä‘á»ƒ dá»… Ä‘á»c, giá»¯ nguyÃªn sá»± kiá»‡n.\n\n## Káº¿t luáº­n\n\nCáº­p nháº­t Ä‘Ã¡ng chÃº Ã½ trong ${category.toLowerCase()}. Theo dÃµi thÃªm táº¡i nguá»“n.`,
       tags: [category, publisher],
       faq: [
-        { question: `Nguồn của tin này?`, answer: `Tổng hợp từ ${publisher} (${link})` },
-        { question: `Vì sao quan trọng?`, answer: `Ảnh hưởng tới ${category.toLowerCase()}` }
+        { question: `Nguá»“n cá»§a tin nÃ y?`, answer: `Tá»•ng há»£p tá»« ${publisher} (${link})` },
+        { question: `VÃ¬ sao quan trá»ng?`, answer: `áº¢nh hÆ°á»Ÿng tá»›i ${category.toLowerCase()}` }
       ]
     };
   }
@@ -159,7 +159,7 @@ Hãy viết lại thành bài hoàn chỉnh theo yêu cầu trên.`;
 
 // --- Fetch RSS ---
 async function fetchRSS(source) {
-  console.log(`\n→ Fetch ${source.publisher}: ${source.url}`);
+  console.log(`\nâ†’ Fetch ${source.publisher}: ${source.url}`);
   try {
     const res = await fetch(source.url, {
       headers: { 'User-Agent': 'n0ai-bot/1.0 (+https://news.n0ai.cloud)' },
@@ -184,18 +184,18 @@ async function fetchRSS(source) {
       media: it['media:content']
     })).filter(i => i.title && i.link);
 
-    console.log(`  ✓ ${normalized.length} items`);
+    console.log(`  âœ“ ${normalized.length} items`);
     return normalized.map(n => ({ ...n, source }));
   } catch (e) {
-    console.warn(`  ✗ Lỗi ${source.url}: ${e.message}`);
+    console.warn(`  âœ— Lá»—i ${source.url}: ${e.message}`);
     return [];
   }
 }
 
 // --- Main ---
 async function main() {
-  console.log('┌ n0ai ingest —', new Date().toISOString());
-  const limit = parseInt(process.env.INGEST_LIMIT ?? '8', 10); // 8 news + 4 blog ~12 mỗi lần, 2 lần/ngày ~15-16 theo yêu cầu max 15/ngày
+  console.log('â”Œ n0ai ingest â€”', new Date().toISOString());
+  const limit = parseInt(process.env.INGEST_LIMIT ?? '8', 10); // 8 news + 4 blog ~12 má»—i láº§n, 2 láº§n/ngÃ y ~15-16 theo yÃªu cáº§u max 15/ngÃ y
   const dryRun = process.env.DRY_RUN === '1';
 
   // Ensure dirs
@@ -216,7 +216,7 @@ async function main() {
   const pickNews = uniq(newsItems).slice(0, limit);
   const pickBlog = uniq(blogItems).slice(0, Math.min(4, limit));
 
-  console.log(`\n→ Chọn ${pickNews.length} news + ${pickBlog.length} blog để rewrite`);
+  console.log(`\nâ†’ Chá»n ${pickNews.length} news + ${pickBlog.length} blog Ä‘á»ƒ rewrite`);
 
   let written = 0;
 
@@ -225,7 +225,7 @@ async function main() {
     const filePath = path.join(item.dir, `${slug}.md`);
     try {
       await fs.access(filePath);
-      console.log(`  ↷ Skip exists: ${slug}`);
+      console.log(`  â†· Skip exists: ${slug}`);
       continue;
     } catch {}
 
@@ -248,7 +248,7 @@ excerpt: "${(rewritten.excerpt ?? rewritten.description).replace(/"/g, '\\"').sl
 publishDate: ${publishDate}
 author:
   name: "n0ai Editorial"
-  role: "Biên tập tự động + Editor"
+  role: "BiÃªn táº­p tá»± Ä‘á»™ng + Editor"
 category: "${item.source.category}"
 tags: [${(rewritten.tags ?? [item.source.category]).map(t => `"${t}"`).join(', ')}]
 cover:
@@ -269,23 +269,23 @@ ${(rewritten.faq ?? []).map(f => `  - question: "${f.question.replace(/"/g, '\\"
 ${rewritten.body}
 
 ---
-*Bài được tổng hợp từ [${item.source.publisher}](${item.link}), viết lại hoàn chỉnh bởi n0ai. Cập nhật tự động lúc ${new Date().toLocaleString('vi-VN')}.*
+*BÃ i Ä‘Æ°á»£c tá»•ng há»£p tá»« [${item.source.publisher}](${item.link}), viáº¿t láº¡i hoÃ n chá»‰nh bá»Ÿi n0ai. Cáº­p nháº­t tá»± Ä‘á»™ng lÃºc ${new Date().toLocaleString('vi-VN')}.*
 `;
 
     if (dryRun) {
       console.log(`  [dry] would write ${filePath}`);
     } else {
       await fs.writeFile(filePath, frontmatter, 'utf-8');
-      console.log(`  ✓ Wrote ${item.type}/${slug}.md`);
+      console.log(`  âœ“ Wrote ${item.type}/${slug}.md`);
       written++;
     }
     // Rate limit AI
     await new Promise(r => setTimeout(r, 800));
   }
 
-  console.log(`\n└ Done — wrote ${written} files. Run: npm run build`);
+  console.log(`\nâ”” Done â€” wrote ${written} files. Run: npm run build`);
   if (written > 0 && !dryRun) {
-    console.log('  → Next: git add . && git commit -m "chore: auto ingest $(date)" && npm run build');
+    console.log('  â†’ Next: git add . && git commit -m "chore: auto ingest $(date)" && npm run build');
   }
 }
 
