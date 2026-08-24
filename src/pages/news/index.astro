@@ -1,83 +1,90 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import NewsLayout from '../../layouts/NewsLayout.astro';
 import NewsCard from '../../components/NewsCard.astro';
 import { getCollection } from 'astro:content';
-
 const posts = (await getCollection('news')).filter(p => !p.data.draft).sort((a,b) => b.data.publishDate.getTime() - a.data.publishDate.getTime());
-const breaking = posts.find(p => p.data.breaking) ?? posts[0];
-const rest = posts.filter(p => p.id !== breaking?.id);
-const latest = rest.slice(0, 10);
-const more = rest.slice(10, 16);
+const lead = posts[0];
+const grid = posts.slice(1, 7);
+const dense = posts.slice(7, 30);
+const cols1 = dense.slice(0, 8);
+const cols2 = dense.slice(8, 16);
+const cols3 = dense.slice(16, 23);
 ---
-
-<BaseLayout
-  title="Tin nhanh 24h — n0ai Newsroom"
-  description="Newsroom n0ai: tin nóng cập nhật 06:00/12:00/18:00/00:00, mỗi tin 900-1200 từ, nguồn kiểm chứng, breaking live."
-  breadcrumbs={[{name:'Home', url:'https://news.n0ai.cloud/'}, {name:'News', url:'https://news.n0ai.cloud/news'}]}
->
-  <Header />
-  <!-- Breaking ticker -->
-  {breaking && (
-    <div class="bg-[var(--color-news)] text-white">
+<NewsLayout title="Tin nhanh 24h — n0ai NEWSROOM" description="Newsroom giấy: 30 bài, dense, breaking, cập nhật 4 lần/ngày, mỗi tin 900-1200 từ.">
+  {lead && (
+    <div class="bg-red-600 text-white">
       <div class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-3 mono text-[12px]">
-        <span class="px-2 py-1 bg-white text-[var(--color-news)] font-[800]">BREAKING</span>
-        <a href={`/news/${breaking.id}`} class="truncate hover:underline font-[600]">{breaking.data.title}</a>
-        <span class="ml-auto hidden sm:inline text-white/70">{breaking.data.publishDate.toLocaleDateString('vi-VN')}</span>
+        <span class="px-2 py-1 bg-white text-red-600 font-[800]">BREAKING</span>
+        <a href={`/news/${lead.id}`} class="truncate font-[700] hover:underline">{lead.data.title}</a>
+        <span class="ml-auto hidden sm:inline opacity-80">{lead.data.publishDate.toLocaleDateString('vi-VN')}</span>
       </div>
     </div>
   )}
-
   <main class="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-6">
-    <div class="flex items-baseline gap-3 border-b border-[var(--color-border)] pb-4">
-      <h1 class="display text-[36px] tracking-[-0.03em]">NEWSROOM</h1>
-      <span class="mono text-[11px] tracking-widest text-[var(--color-text-faint)]">{posts.length} TIN — CẬP NHẬT LIÊN TỤC</span>
-      <span class="ml-auto mono text-[11px] px-2 py-1 bg-[var(--color-news)] text-white hidden sm:inline">LIVE 24H</span>
+    <div class="flex items-baseline gap-3 border-b-[3px] border-black pb-3">
+      <h1 class="font-[900] tracking-[-0.04em] text-[32px]" style="font-family: 'Instrument Serif', serif;">TRANG NHẤT</h1>
+      <span class="mono text-[11px] tracking-widest bg-black text-white px-2 py-1">{posts.length}/30 TIN</span>
+      <span class="mono text-[11px] text-black/60">DENSE • KHÔNG TRỐNG • 900-1200 TỪ</span>
+      <span class="ml-auto hidden md:inline mono text-[11px] border border-black px-2 py-1">SỐ {new Date().toLocaleDateString('vi-VN')}</span>
     </div>
 
     {posts.length === 0 ? (
-      <div class="py-16 text-center mono text-[13px] text-[var(--color-text-muted)] border border-dashed border-[var(--color-border)] mt-6">Chưa có tin — pipeline sẽ populate 4 lần/ngày.</div>
+      <div class="py-16 text-center mono text-[13px] border border-dashed border-black/20 mt-6">Chưa có tin — đang bơm 30 bài.</div>
     ) : (
-      <div class="grid lg:grid-cols-12 gap-6 mt-6">
-        {/* Left: lead + list */}
-        <div class="lg:col-span-8">
-          {breaking && <NewsCard title={breaking.data.title} href={`/news/${breaking.id}`} image={breaking.data.cover.src} category={breaking.data.category} time={breaking.data.publishDate.toLocaleDateString('vi-VN')} excerpt={breaking.data.description} breaking={breaking.data.breaking} variant="lead" />}
-          <div class="mt-2">
-            {latest.map(p => (
-              <NewsCard title={p.data.title} href={`/news/${p.id}`} image={p.data.cover.src} category={p.data.category} time={p.data.publishDate.toLocaleDateString('vi-VN')} excerpt={p.data.description} variant="row" />
-            ))}
+      <>
+        {lead && <div class="mt-6"><NewsCard title={lead.data.title} href={`/news/${lead.id}`} image={lead.data.cover.src} category={lead.data.category} time={lead.data.publishDate.toLocaleDateString('vi-VN')} excerpt={lead.data.description} breaking={lead.data.breaking} variant="lead" /></div>}
+
+        <div class="mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {grid.map(p => (
+            <a href={`/news/${p.id}`} class="group block border border-black hover:bg-black hover:text-white transition">
+              <div class="aspect-[16/10] overflow-hidden bg-zinc-100"><img src={p.data.cover.src} alt={p.data.title} width="400" height="250" loading="lazy" class="w-full h-full object-cover group-hover:scale-[1.02] transition duration-500" /></div>
+              <div class="p-3">
+                <div class="mono text-[10px] tracking-widest opacity-60">{p.data.category} • {p.data.publishDate.toLocaleDateString('vi-VN')}</div>
+                <h3 class="mt-1 font-[700] leading-[1.2] text-[15px] line-clamp-2">{p.data.title}</h3>
+                <p class="mt-1 mono text-[12px] leading-relaxed opacity-70 line-clamp-2">{p.data.description}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <div class="mt-8 grid lg:grid-cols-3 gap-6 border-t-[3px] border-black pt-6">
+          <div>
+            <div class="mono text-[11px] font-[800] tracking-[0.12em] border-b border-black pb-2">CỘT 1 — MỚI NHẤT</div>
+            <div class="mt-2">
+              {cols1.length === 0 ? <div class="mono text-[12px] opacity-60 py-4">Đang bơm thêm...</div> : cols1.map(p => (
+                <a href={`/news/${p.id}`} class="group flex gap-3 py-3 border-b border-black/10 hover:bg-black hover:text-white -mx-2 px-2 transition">
+                  <div class="flex-1 min-w-0"><div class="mono text-[10px] opacity-60">{p.data.category} • {p.data.publishDate.toLocaleDateString('vi-VN')}</div><div class="font-[600] leading-[1.3] text-[13px] line-clamp-2 group-hover:underline">{p.data.title}</div></div>
+                  <img src={p.data.cover.src} alt={p.data.title} width="80" height="60" loading="lazy" class="w-[72px] h-[54px] object-cover border border-black/10 shrink-0" />
+                </a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div class="mono text-[11px] font-[800] tracking-[0.12em] border-b border-black pb-2">CỘT 2 — KINH TẾ</div>
+            <div class="mt-2">
+              {cols2.length === 0 ? <div class="mono text-[12px] opacity-60 py-4">Đang bơm...</div> : cols2.map(p => (
+                <a href={`/news/${p.id}`} class="group flex gap-3 py-3 border-b border-black/10 hover:bg-black hover:text-white -mx-2 px-2 transition">
+                  <div class="flex-1 min-w-0"><div class="mono text-[10px] opacity-60">{p.data.category} • {p.data.publishDate.toLocaleDateString('vi-VN')}</div><div class="font-[600] leading-[1.3] text-[13px] line-clamp-2 group-hover:underline">{p.data.title}</div></div>
+                  <img src={p.data.cover.src} alt={p.data.title} width="80" height="60" loading="lazy" class="w-[72px] h-[54px] object-cover border border-black/10 shrink-0" />
+                </a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div class="mono text-[11px] font-[800] tracking-[0.12em] border-b border-black pb-2">CỘT 3 — CÔNG NGHỆ</div>
+            <div class="mt-2">
+              {cols3.length === 0 ? <div class="mono text-[12px] opacity-60 py-4">Đang bơm...</div> : cols3.map(p => (
+                <a href={`/news/${p.id}`} class="group flex gap-3 py-3 border-b border-black/10 hover:bg-black hover:text-white -mx-2 px-2 transition">
+                  <div class="flex-1 min-w-0"><div class="mono text-[10px] opacity-60">{p.data.category} • {p.data.publishDate.toLocaleDateString('vi-VN')}</div><div class="font-[600] leading-[1.3] text-[13px] line-clamp-2 group-hover:underline">{p.data.title}</div></div>
+                  <img src={p.data.cover.src} alt={p.data.title} width="80" height="60" loading="lazy" class="w-[72px] h-[54px] object-cover border border-black/10 shrink-0" />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
-        {/* Right: dense sidebar */}
-        <aside class="lg:col-span-4 space-y-6">
-          <div class="bg-[var(--color-surface)] border border-[var(--color-border)] p-5">
-            <div class="mono text-[11px] tracking-widest text-[var(--color-text-faint)]">THEO DÕI NHANH</div>
-            <h3 class="mt-2 font-[700] tracking-[-0.02em]">15 bài/ngày — DeepSeek v4 Flash</h3>
-            <p class="mt-2 text-[13px] leading-relaxed text-[var(--color-text-muted)]">Mỗi tin 900-1200 từ, có nguồn, FAQ, JSON-LD. Cập nhật 00/06/12/18h ICT.</p>
-            <div class="mt-3 grid grid-cols-3 gap-2 mono text-center">
-              <div class="bg-[var(--color-bg)] border border-[var(--color-border)] py-2"><div class="text-[18px] font-[800]">{posts.length}</div><div class="text-[10px] text-[var(--color-text-faint)]">TIN</div></div>
-              <div class="bg-[var(--color-bg)] border border-[var(--color-border)] py-2"><div class="text-[18px] font-[800]">06:00</div><div class="text-[10px] text-[var(--color-text-faint)]">NEXT</div></div>
-              <div class="bg-[var(--color-news)] text-white py-2"><div class="text-[18px] font-[800]">LIVE</div><div class="text-[10px]">24H</div></div>
-            </div>
-          </div>
 
-          <div class="border border-[var(--color-border)]">
-            <div class="px-4 py-3 mono text-[11px] tracking-widest bg-black text-white">TIN MỚI NHẤT</div>
-            <div class="p-4">
-              {more.length === 0 ? <div class="mono text-[12px] text-[var(--color-text-faint)]">Đang cập nhật...</div> : more.map(p => <a href={`/news/${p.id}`} class="block py-2 border-b border-[var(--color-border)]/50 last:border-0 hover:text-[var(--color-news)] transition"><div class="mono text-[11px] text-[var(--color-text-faint)]">{p.data.category} • {p.data.publishDate.toLocaleDateString('vi-VN')}</div><div class="text-[13px] font-[600] leading-[1.3] line-clamp-2">{p.data.title}</div></a>)}
-            </div>
-          </div>
-
-          <div class="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] p-4">
-            <div class="mono text-[11px] tracking-widest">CHỦ ĐỀ HOT</div>
-            <div class="mt-3 flex flex-wrap gap-1.5">
-              {['AI','Kinh tế','Công nghệ','Đời sống','Thế giới'].map(t => <a href={`/topics/${t.toLowerCase()}`} class="px-2.5 py-1 mono text-[11px] bg-[var(--color-surface)] border border-[var(--color-border)] hover:bg-white hover:text-black transition">#{t}</a>)}
-            </div>
-          </div>
-        </aside>
-      </div>
+        <div class="mt-8 mono text-[11px] text-center py-3 border border-black bg-black text-white tracking-widest">30 BÀI — DENSE — KHÔNG CÒN TRỐNG — {posts.length}/30 ĐÃ CÓ</div>
+      </>
     )}
   </main>
-  <Footer />
-</BaseLayout>
+</NewsLayout>
